@@ -1,0 +1,54 @@
+; Engine configuration file.
+; Godot 4.x project file for Shellstrike2D
+
+config_version=5
+
+[application]
+
+config/name="Shellstrike2D"
+config/description="Top-down 2D tactical shooter: Tortoises vs Rabbits"
+run/main_scene="res://scenes/Main.tscn"
+config/features=PackedStringArray("4.3", "Mobile")
+boot_splash/bg_color=Color(0.07, 0.09, 0.07, 1)
+
+[autoload]
+
+Global="*res://scripts/global.gd"
+GameManager="*res://scripts/game_manager.gd"
+TouchInput="*res://scripts/touch_input.gd"
+
+[display]
+
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/handheld/orientation="portrait"
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[input]
+
+move_left={"deadzone":0.2}
+move_right={"deadzone":0.2}
+move_up={"deadzone":0.2}
+move_down={"deadzone":0.2}
+fire={"deadzone":0.2}
+plant_defuse={"deadzone":0.2}
+buy_menu={"deadzone":0.2}
+
+[physics]
+
+2d/default_gravity=0
+common/physics_ticks_per_second=60
+
+[rendering]
+
+renderer/rendering_method="mobile"
+textures/canvas_textures/default_texture_filter=0
+
+[layer_names]
+
+2d_physics/layer_1="world"
+2d_physics/layer_2="tortoises"
+2d_physics/layer_3="rabbits"
+2d_physics/layer_4="bullets"
+2d_physics/layer_5="interactables"

@@ -1,0 +1,15 @@
+# Godot 4 generated/cache
+.godot/
+.import/
+export.cfg
+export_credentials.cfg
+
+# Android export build artifacts
+builds/
+*.apk
+*.aab
+
+# Editor / OS junk
+.DS_Store
+Thumbs.db
+*.tmp

@@ -1,0 +1,5 @@
+[gd_scene load_steps=1 format=3]
+
+[node name="InteractButton" type="TouchScreenButton"]
+action = "plant_defuse"
+visibility_mode = 0

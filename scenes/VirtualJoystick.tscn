@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="1"]
+
+[node name="VirtualJoystick" type="Control"]
+custom_minimum_size = Vector2(180, 180)
+script = ExtResource("1")
+mode = "move"
+
+[node name="Base" type="Control" parent="."]
+custom_minimum_size = Vector2(180, 180)
+mouse_filter = 1
+
+[node name="BaseVisual" type="ColorRect" parent="Base"]
+color = Color(1, 1, 1, 0.12)
+size = Vector2(180, 180)
+
+[node name="Knob" type="ColorRect" parent="Base"]
+color = Color(1, 1, 1, 0.35)
+size = Vector2(56, 56)
+position = Vector2(62, 62)
+mouse_filter = 2

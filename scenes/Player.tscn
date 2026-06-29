@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://player_unit"]
+
+[ext_resource type="PackedScene" path="res://scenes/Unit.tscn" id="1"]
+
+[node name="Player" instance=ExtResource("1")]
+is_ai = false
+move_speed = 200.0
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(1.4, 1.4)
