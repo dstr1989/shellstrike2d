@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Shellstrike2D mascot - Rabbit, front-facing portrait (store icon / merch ready) -->
+  <ellipse cx="256" cy="470" rx="140" ry="22" fill="#000000" opacity="0.12"/>
+  <g stroke="#1B1B1F" stroke-width="10" stroke-linejoin="round">
+    <!-- ears -->
+    <path d="M196 150 C 150 30 110 -10 80 20 C 70 90 110 170 170 220 Z" fill="#F2C9A0"/>
+    <path d="M316 150 C 362 30 402 -10 432 20 C 442 90 402 170 342 220 Z" fill="#F2C9A0"/>
+    <path d="M188 140 C 155 50 130 25 110 40 C 108 95 138 155 182 195 Z" fill="#F08FA2" opacity="0.75"/>
+    <path d="M324 140 C 357 50 382 25 402 40 C 404 95 374 155 330 195 Z" fill="#F08FA2" opacity="0.75"/>
+    <!-- body -->
+    <path d="M256 180 C 350 180 400 250 392 340 C 386 400 326 432 256 432 C 186 432 126 400 120 340 C 112 250 162 180 256 180 Z" fill="#F2C9A0"/>
+    <!-- head -->
+    <circle cx="256" cy="180" r="78" fill="#F2C9A0"/>
+    <!-- arms -->
+    <ellipse cx="128" cy="320" rx="32" ry="46" fill="#F2C9A0"/>
+    <ellipse cx="384" cy="320" rx="32" ry="46" fill="#F2C9A0"/>
+    <!-- feet -->
+    <ellipse cx="196" cy="432" rx="38" ry="22" fill="#F2C9A0"/>
+    <ellipse cx="316" cy="432" rx="38" ry="22" fill="#F2C9A0"/>
+  </g>
+  <!-- tactical bandana -->
+  <path d="M168 150 Q256 110 344 150 L336 198 Q256 168 176 198 Z" fill="#C1502E" stroke="#1B1B1F" stroke-width="8"/>
+  <!-- face -->
+  <circle cx="224" cy="186" r="22" fill="#FFFFFF" stroke="#1B1B1F" stroke-width="6"/>
+  <circle cx="290" cy="186" r="22" fill="#FFFFFF" stroke="#1B1B1F" stroke-width="6"/>
+  <circle cx="231" cy="190" r="10" fill="#1B1B1F"/>
+  <circle cx="297" cy="190" r="10" fill="#1B1B1F"/>
+  <circle cx="256" cy="216" r="7" fill="#1B1B1F"/>
+  <path d="M236 228 Q256 240 276 228" fill="none" stroke="#1B1B1F" stroke-width="6" stroke-linecap="round"/>
+  <!-- chest fluff -->
+  <ellipse cx="256" cy="300" rx="56" ry="40" fill="#FFE6BF" opacity="0.8"/>
+  <!-- blaster prop -->
+  <rect x="372" y="300" width="64" height="34" rx="9" fill="#5B5F66" stroke="#1B1B1F" stroke-width="7"/>
+  <rect x="354" y="306" width="26" height="20" fill="#8A8F99" stroke="#1B1B1F" stroke-width="5"/>
+</svg>

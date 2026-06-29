@@ -1,0 +1,152 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/Bot.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/CarrotCharge.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/HUD.tscn" id="5"]
+[ext_resource type="Texture2D" path="res://assets/sprites/tile_ground.svg" id="6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/tile_wall.svg" id="7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/den_marker.svg" id="8"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_border_h"]
+size = Vector2(1500, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_border_v"]
+size = Vector2(40, 1900)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_crate"]
+size = Vector2(96, 96)
+
+[node name="MapWarren" type="Node2D"]
+script = ExtResource("1")
+
+[node name="Background" type="Sprite2D" parent="."]
+position = Vector2(700, 900)
+scale = Vector2(11.7, 14.1)
+texture = ExtResource("6")
+z_index = -10
+
+[node name="Walls" type="Node2D" parent="."]
+
+[node name="WallTop" type="StaticBody2D" parent="Walls"]
+position = Vector2(700, 0)
+collision_layer = 1
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/WallTop"]
+shape = SubResource("RectangleShape2D_border_h")
+
+[node name="WallBottom" type="StaticBody2D" parent="Walls"]
+position = Vector2(700, 1800)
+collision_layer = 1
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/WallBottom"]
+shape = SubResource("RectangleShape2D_border_h")
+
+[node name="WallLeft" type="StaticBody2D" parent="Walls"]
+position = Vector2(0, 900)
+collision_layer = 1
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/WallLeft"]
+shape = SubResource("RectangleShape2D_border_v")
+
+[node name="WallRight" type="StaticBody2D" parent="Walls"]
+position = Vector2(1400, 900)
+collision_layer = 1
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/WallRight"]
+shape = SubResource("RectangleShape2D_border_v")
+
+[node name="Hedges" type="Node2D" parent="."]
+
+[node name="HedgeMidGateLeft" type="StaticBody2D" parent="Hedges"]
+position = Vector2(560, 950)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hedges/HedgeMidGateLeft"]
+shape = SubResource("RectangleShape2D_border_v")
+[node name="Sprite" type="Sprite2D" parent="Hedges/HedgeMidGateLeft"]
+texture = ExtResource("7")
+scale = Vector2(0.3125, 1.875)
+
+[node name="HedgeMidGateRight" type="StaticBody2D" parent="Hedges"]
+position = Vector2(840, 950)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hedges/HedgeMidGateRight"]
+shape = SubResource("RectangleShape2D_border_v")
+[node name="Sprite" type="Sprite2D" parent="Hedges/HedgeMidGateRight"]
+texture = ExtResource("7")
+scale = Vector2(0.3125, 1.875)
+
+[node name="HedgeALaneSplit" type="StaticBody2D" parent="Hedges"]
+position = Vector2(260, 700)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hedges/HedgeALaneSplit"]
+shape = SubResource("RectangleShape2D_border_v")
+[node name="Sprite" type="Sprite2D" parent="Hedges/HedgeALaneSplit"]
+texture = ExtResource("7")
+scale = Vector2(0.3125, 1.6)
+
+[node name="HedgeBLaneSplit" type="StaticBody2D" parent="Hedges"]
+position = Vector2(1140, 700)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hedges/HedgeBLaneSplit"]
+shape = SubResource("RectangleShape2D_border_v")
+[node name="Sprite" type="Sprite2D" parent="Hedges/HedgeBLaneSplit"]
+texture = ExtResource("7")
+scale = Vector2(0.3125, 1.6)
+
+[node name="CrateMid1" type="StaticBody2D" parent="Hedges"]
+position = Vector2(640, 1100)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hedges/CrateMid1"]
+shape = SubResource("RectangleShape2D_crate")
+[node name="Sprite" type="Sprite2D" parent="Hedges/CrateMid1"]
+texture = ExtResource("7")
+scale = Vector2(0.6, 0.6)
+
+[node name="CrateMid2" type="StaticBody2D" parent="Hedges"]
+position = Vector2(760, 1100)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hedges/CrateMid2"]
+shape = SubResource("RectangleShape2D_crate")
+[node name="Sprite" type="Sprite2D" parent="Hedges/CrateMid2"]
+texture = ExtResource("7")
+scale = Vector2(0.6, 0.6)
+
+[node name="DenA" type="Marker2D" parent="."]
+position = Vector2(260, 320)
+groups = ["den_zones"]
+[node name="Sprite" type="Sprite2D" parent="DenA"]
+texture = ExtResource("8")
+
+[node name="DenB" type="Marker2D" parent="."]
+position = Vector2(1140, 320)
+groups = ["den_zones"]
+[node name="Sprite" type="Sprite2D" parent="DenB"]
+texture = ExtResource("8")
+
+[node name="TortoiseSpawn1" type="Marker2D" parent="."]
+position = Vector2(640, 120)
+groups = ["tortoise_spawns"]
+
+[node name="TortoiseSpawn2" type="Marker2D" parent="."]
+position = Vector2(760, 120)
+groups = ["tortoise_spawns"]
+
+[node name="RabbitSpawn1" type="Marker2D" parent="."]
+position = Vector2(640, 1680)
+groups = ["rabbit_spawns"]
+
+[node name="RabbitSpawn2" type="Marker2D" parent="."]
+position = Vector2(760, 1680)
+groups = ["rabbit_spawns"]
+
+[node name="CarrotCharge" parent="." instance=ExtResource("4")]
+
+[node name="Player" parent="." instance=ExtResource("2")]
+position = Vector2(700, 120)
+team = 1
+
+[node name="TortoiseBot1" parent="." instance=ExtResource("3")]
+position = Vector2(600, 120)
+team = 1
+
+[node name="RabbitBot1" parent="." instance=ExtResource("3")]
+position = Vector2(640, 1680)
+team = 2
+
+[node name="RabbitBot2" parent="." instance=ExtResource("3")]
+position = Vector2(760, 1680)
+team = 2
+
+[node name="HUD" parent="." instance=ExtResource("5")]

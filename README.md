@@ -34,8 +34,9 @@ Taktyczna strzelanka 2D z widokiem z góry na Androida, inspirowana mechaniką C
 
 ## Tech stack
 
-- **Godot 4.3** (GDScript), renderer `mobile`.
-- Eksport: Android (APK/AAB).
+- **Godot 4.7** (GDScript), renderer `mobile`.
+- Eksport: Android (APK/AAB) — w pełni skonfigurowany i testowany w tym repo.
+- Eksport: **iOS** — preset (`export_presets.cfg`) jest gotowy, ale samego `.ipa` (kompilacja przez Xcode + podpis) **nie da się zrobić na Windowsie**. Godot eksportuje na iOS projekt Xcode, który trzeba zbudować i podpisać na maku z zainstalowanym Xcode (potrzebne Apple Developer account do podpisu/dystrybucji). Gdy będzie dostępny Mac, eksport: `Godot → Export → iOS → Export Project`, potem otworzyć wygenerowany `.xcodeproj` w Xcode i zrobić Archive.
 - Fizyka 2D, warstwy kolizji zdefiniowane w `project.godot`.
 
 ## Struktura projektu

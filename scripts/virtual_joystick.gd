@@ -1,5 +1,5 @@
 extends Control
-class_name VirtualJoystick
+class_name TouchJoystick
 ## On-screen analog stick. mode = "move" writes to TouchInput.move_vector,
 ## mode = "aim" writes to TouchInput.aim_vector and also fires while dragged
 ## (so right-stick drag = aim + auto-fire, like a twin-stick shooter).

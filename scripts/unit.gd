@@ -17,7 +17,10 @@ signal fired(from_pos: Vector2, to_pos: Vector2, hit: bool)
 
 @onready var health: HealthComponent = $HealthComponent
 @onready var muzzle: Marker2D = $Muzzle
-@onready var sprite: Node2D = $Sprite
+@onready var sprite: Sprite2D = $Sprite
+
+const TORTOISE_TEXTURE := preload("res://assets/sprites/tortoise_topdown.svg")
+const RABBIT_TEXTURE := preload("res://assets/sprites/rabbit_topdown.svg")
 
 var _fire_cooldown: float = 0.0
 var _ai_move: Vector2 = Vector2.ZERO
@@ -33,6 +36,7 @@ func _ready() -> void:
 	GameManager.register_actor(self)
 	if team == Global.Team.RABBIT:
 		_carrying_charge = true
+	sprite.texture = TORTOISE_TEXTURE if team == Global.Team.TORTOISE else RABBIT_TEXTURE
 	# layers: 1=world 2=tortoises 4=rabbits 8=bullets 16=interactables
 	collision_layer = 2 if team == Global.Team.TORTOISE else 4
 	collision_mask = 1 | 2 | 4

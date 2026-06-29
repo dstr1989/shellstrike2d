@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Shellstrike2D mascot - Tortoise, front-facing portrait (store icon / merch ready) -->
+  <ellipse cx="256" cy="470" rx="150" ry="22" fill="#000000" opacity="0.12"/>
+  <g stroke="#1B1B1F" stroke-width="10" stroke-linejoin="round">
+    <!-- shell back plate -->
+    <path d="M256 70 C 380 70 440 170 420 290 C 405 380 330 430 256 430 C 182 430 107 380 92 290 C 72 170 132 70 256 70 Z" fill="#2E9E6B"/>
+    <!-- head -->
+    <circle cx="256" cy="150" r="74" fill="#F4E9C9"/>
+    <!-- arms -->
+    <ellipse cx="120" cy="300" rx="36" ry="50" fill="#F4E9C9"/>
+    <ellipse cx="392" cy="300" rx="36" ry="50" fill="#F4E9C9"/>
+    <!-- feet -->
+    <ellipse cx="190" cy="430" rx="34" ry="22" fill="#F4E9C9"/>
+    <ellipse cx="322" cy="430" rx="34" ry="22" fill="#F4E9C9"/>
+  </g>
+  <!-- shell hexagon plates -->
+  <g fill="#5FD79A" stroke="#1F7A52" stroke-width="5" opacity="0.9">
+    <polygon points="256,170 300,195 300,245 256,270 212,245 212,195"/>
+    <polygon points="176,230 220,255 220,305 176,330 132,305 132,255"/>
+    <polygon points="336,230 380,255 380,305 336,330 292,305 292,255"/>
+  </g>
+  <!-- bandana -->
+  <path d="M170 118 Q256 76 342 118 L334 168 Q256 134 178 168 Z" fill="#274C77" stroke="#1B1B1F" stroke-width="8"/>
+  <!-- face -->
+  <circle cx="224" cy="156" r="20" fill="#FFFFFF" stroke="#1B1B1F" stroke-width="6"/>
+  <circle cx="288" cy="156" r="20" fill="#FFFFFF" stroke="#1B1B1F" stroke-width="6"/>
+  <circle cx="230" cy="160" r="9" fill="#1B1B1F"/>
+  <circle cx="294" cy="160" r="9" fill="#1B1B1F"/>
+  <path d="M236 196 Q256 210 276 196" fill="none" stroke="#1B1B1F" stroke-width="7" stroke-linecap="round"/>
+  <!-- blaster prop -->
+  <rect x="380" y="280" width="70" height="38" rx="10" fill="#5B5F66" stroke="#1B1B1F" stroke-width="8"/>
+  <rect x="360" y="288" width="30" height="22" fill="#8A8F99" stroke="#1B1B1F" stroke-width="6"/>
+</svg>
