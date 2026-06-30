@@ -263,6 +263,7 @@ team = 2
 [node name="RabbitBot1" parent="." instance=ExtResource("3")]
 position = Vector2(820, 2220)
 team = 2
+is_teammate = true
 
 [node name="TortoiseBot1" parent="." instance=ExtResource("3")]
 position = Vector2(820, 200)

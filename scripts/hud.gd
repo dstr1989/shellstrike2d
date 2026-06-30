@@ -5,6 +5,7 @@ extends CanvasLayer
 @onready var score_label: Label = $TopBar/ScoreLabel
 @onready var status_label: Label = $StatusLabel
 @onready var jump_button: Button = $JumpButton
+@onready var shield_button: Button = $ShieldButton
 @onready var kill_feed: VBoxContainer = $KillFeed
 
 func _ready() -> void:
@@ -15,6 +16,8 @@ func _ready() -> void:
 	GameManager.kill_logged.connect(_on_kill_logged)
 	jump_button.button_down.connect(func(): Input.action_press("jump"))
 	jump_button.button_up.connect(func(): Input.action_release("jump"))
+	shield_button.button_down.connect(func(): Input.action_press("shield"))
+	shield_button.button_up.connect(func(): Input.action_release("shield"))
 
 func _on_kill_logged(attacker_label: String, victim_label: String, attacker_team: int) -> void:
 	var row := Label.new()

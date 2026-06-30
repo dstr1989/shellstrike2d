@@ -57,6 +57,10 @@ offset_right = 140.0
 offset_top = 440.0
 theme_override_constants/separation = 24
 
+[node name="SideButton" type="Button" parent="Buttons"]
+custom_minimum_size = Vector2(280, 56)
+text = "Strona: Królik 🐇"
+
 [node name="OasisButton" type="Button" parent="Buttons"]
 custom_minimum_size = Vector2(280, 64)
 text = "de_oasis"
@@ -69,6 +73,7 @@ text = "de_burrow"
 custom_minimum_size = Vector2(280, 64)
 text = "de_warren"
 
+[connection signal="pressed" from="Buttons/SideButton" to="." method="_on_side_pressed"]
 [connection signal="pressed" from="Buttons/OasisButton" to="." method="_on_oasis_pressed"]
 [connection signal="pressed" from="Buttons/BurrowButton" to="." method="_on_burrow_pressed"]
 [connection signal="pressed" from="Buttons/WarrenButton" to="." method="_on_warren_pressed"]

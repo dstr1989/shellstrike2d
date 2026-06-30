@@ -20,6 +20,9 @@ const PLANT_SECONDS := 3.0
 
 const STARTING_HP := 100
 
+static func opposite(team: Team) -> Team:
+	return Team.RABBIT if team == Team.TORTOISE else Team.TORTOISE
+
 static func team_name(team: Team) -> String:
 	match team:
 		Team.TORTOISE:

@@ -9,6 +9,8 @@ signal fired(from_pos: Vector2, to_pos: Vector2, hit: bool)
 
 @export var team: Global.Team = Global.Team.TORTOISE
 @export var is_ai: bool = false
+## AI bots only: if true this bot joins the human player's team (the rest oppose).
+@export var is_teammate: bool = false
 @export var move_speed: float = 200.0
 @export var fire_rate: float = 6.0 # shots per second
 @export var damage_per_shot: int = 24
@@ -26,6 +28,7 @@ signal fired(from_pos: Vector2, to_pos: Vector2, hit: bool)
 @onready var health_bar: Node2D = $Visual/HealthBar
 @onready var health_fill: ColorRect = $Visual/HealthBar/Fill
 @onready var prompt_label: Label = $Visual/PromptLabel
+@onready var shield_sprite: Sprite2D = $Visual/AimPivot/Shield
 
 # --- Elevation / jumping (top-down z-height simulation) ---
 const GRAVITY := 900.0
@@ -48,6 +51,16 @@ var _weapon_base_x: float = 28.0
 var kills: int = 0
 var deaths: int = 0
 
+# --- Shell shield (Tortoise ability) ---
+const SHIELD_MOVE_MULT := 0.45     # slowed while shielding
+const SHIELD_FRONT_DOT := 0.34     # ~70° frontal arc fully blocks
+var _shielding: bool = false
+var _ai_shield: bool = false
+# --- Height-based combat ---
+const HIDE_DEPTH := -20.0          # at/below this z you can be hidden in a pit
+const HIDE_GAP := 20.0             # min z gap for concealment
+const PEEK_DIST := 240.0           # within this range height no longer protects
+
 # Fallback textures if no skin is registered (keeps the unit visible).
 const FALLBACK_TORTOISE := preload("res://assets/sprites/tortoise_topdown.svg")
 const FALLBACK_RABBIT := preload("res://assets/sprites/rabbit_topdown.svg")
@@ -62,6 +75,13 @@ var _ai_interacting: bool = false
 var _carrying_charge: bool = false # rabbits only: true until charge planted
 
 func _ready() -> void:
+	# Team assignment: human plays the chosen side; one bot joins them, rest oppose.
+	if not is_ai:
+		team = Loadout.player_team
+	elif is_teammate:
+		team = Loadout.player_team
+	else:
+		team = Global.opposite(Loadout.player_team)
 	add_to_group("respawnable")
 	add_to_group("units")
 	health.died.connect(_on_died)
@@ -96,6 +116,10 @@ func _apply_skin() -> void:
 	# Scale the weapon to a consistent on-screen length regardless of source size.
 	if weapon.texture != null:
 		weapon.scale = Vector2.ONE * (46.0 / float(weapon.texture.get_width()))
+	if _shield_texture != null:
+		shield_sprite.texture = _shield_texture
+		shield_sprite.scale = Vector2.ONE * (74.0 / float(_shield_texture.get_width()))
+	shield_sprite.visible = false
 
 func _physics_process(delta: float) -> void:
 	if not health.is_alive():
@@ -105,8 +129,12 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		return
 
+	_update_shield()
+
 	var move_input := _ai_move if is_ai else TouchInput.get_move_vector()
 	velocity = move_input.normalized() * move_speed if move_input.length() > 0.0 else Vector2.ZERO
+	if _shielding:
+		velocity *= SHIELD_MOVE_MULT
 	move_and_slide()
 
 	_update_elevation(delta)
@@ -119,7 +147,7 @@ func _physics_process(delta: float) -> void:
 
 	_fire_cooldown = max(0.0, _fire_cooldown - delta)
 	var firing := _ai_firing if is_ai else TouchInput.is_firing()
-	if firing and _fire_cooldown <= 0.0:
+	if firing and not _shielding and _fire_cooldown <= 0.0:
 		_shoot()
 
 	if _flash_timer > 0.0:
@@ -167,6 +195,13 @@ func _update_elevation(delta: float) -> void:
 	var t := clampf(z_height / 120.0, 0.0, 1.0)
 	shadow.scale = Vector2.ONE * lerpf(0.85, 0.5, t)
 	shadow.modulate.a = lerpf(0.35, 0.12, t)
+
+func _update_shield() -> void:
+	var want := false
+	if team == Global.Team.TORTOISE and _shield_texture != null:
+		want = _ai_shield if is_ai else Input.is_action_pressed("shield")
+	_shielding = want
+	shield_sprite.visible = want
 
 func _animate(delta: float) -> void:
 	_anim_t += delta
@@ -284,7 +319,22 @@ func _spawn_shot_fx(from_pos: Vector2, to_pos: Vector2, hit: bool) -> void:
 func _on_hit_by_bullet(amount: int, attacker: Node) -> void:
 	if attacker and "team" in attacker and attacker.team == team:
 		return # no friendly fire in MVP
+	var atk := attacker as Unit
+	if atk != null:
+		# Height concealment: if we're down in a pit and the shooter is on higher
+		# ground and not point-blank, the shot passes over us.
+		if z_height <= HIDE_DEPTH and atk.z_height > z_height + HIDE_GAP \
+			and global_position.distance_to(atk.global_position) > PEEK_DIST:
+			return
+		# Shell shield fully blocks shots from our frontal arc.
+		if _shielding:
+			var to_attacker := (atk.global_position - global_position).normalized()
+			if to_attacker.dot(_aim_dir) > SHIELD_FRONT_DOT:
+				return
 	health.apply_damage(amount, attacker)
+
+func set_shield(value: bool) -> void:
+	_ai_shield = value
 
 func _on_damaged(_amount: int, _current_hp: int, _attacker: Node) -> void:
 	_refresh_health_bar()
@@ -338,6 +388,9 @@ func respawn_for_new_round() -> void:
 	_on_ground = true
 	visual.position.y = 0.0
 	set_collision_mask_value(LOW_COVER_BIT, true)
+	_shielding = false
+	_ai_shield = false
+	shield_sprite.visible = false
 	_refresh_health_bar()
 	var spawn_group := "tortoise_spawns" if team == Global.Team.TORTOISE else "rabbit_spawns"
 	var spawns := get_tree().get_nodes_in_group(spawn_group)
