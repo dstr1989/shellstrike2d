@@ -4,7 +4,7 @@ class_name Door
 ## its detection area, closes when empty. Slide direction is the door's local up,
 ## so set the node's rotation to orient it.
 
-@export var slide: Vector2 = Vector2(0, -86)
+@export var slide: Vector2 = Vector2(0, -150)
 @export var open_speed: float = 0.22
 
 @onready var shape: CollisionShape2D = $C

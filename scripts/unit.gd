@@ -20,7 +20,7 @@ signal fired(from_pos: Vector2, to_pos: Vector2, hit: bool)
 @onready var health: HealthComponent = $HealthComponent
 @onready var visual: Node2D = $Visual
 @onready var shadow: Sprite2D = $Shadow
-@onready var body: Sprite2D = $Visual/Body
+@onready var body: CharacterRig = $Visual/Body
 @onready var aim_pivot: Node2D = $Visual/AimPivot
 @onready var weapon: Sprite2D = $Visual/AimPivot/Weapon
 @onready var muzzle: Marker2D = $Visual/AimPivot/Muzzle
@@ -74,6 +74,8 @@ const FALLBACK_RABBIT := preload("res://assets/sprites/rabbit_topdown.svg")
 var _fire_cooldown: float = 0.0
 var _flash_timer: float = 0.0
 var _aim_dir: Vector2 = Vector2.RIGHT
+var _facing_left: bool = false
+var _prev_water: int = 0
 var _ai_move: Vector2 = Vector2.ZERO
 var _ai_aim: Vector2 = Vector2.RIGHT
 var _ai_firing: bool = false
@@ -110,21 +112,15 @@ func _ready() -> void:
 var _shield_texture: Texture2D = null
 
 func _apply_skin() -> void:
+	body.setup(team)   # assemble the multi-part rig for this team
 	var skin: CharacterSkin = SkinManager.get_active(team)
-	if skin != null and skin.body_texture != null:
-		body.texture = skin.body_texture
-		body.scale = Vector2.ONE * skin.body_scale
+	if skin != null:
 		_shield_texture = skin.shield_texture
 		if skin.weapon_texture != null:
 			weapon.texture = skin.weapon_texture
-	else:
-		body.texture = FALLBACK_TORTOISE if team == Global.Team.TORTOISE else FALLBACK_RABBIT
 	# Scale the weapon to a consistent on-screen length regardless of source size.
 	if weapon.texture != null:
 		weapon.scale = Vector2.ONE * (46.0 / float(weapon.texture.get_width()))
-	if _shield_texture != null:
-		shield_sprite.texture = _shield_texture
-		shield_sprite.scale = Vector2.ONE * (104.0 / float(_shield_texture.get_width()))
 	shield_sprite.visible = false
 
 func _physics_process(delta: float) -> void:
@@ -189,6 +185,7 @@ func _update_elevation(delta: float) -> void:
 	if _on_ground and not is_ai and Input.is_action_just_pressed("jump"):
 		z_vel = JUMP_VELOCITY
 		_on_ground = false
+		FX.dust(global_position + Vector2(0, 16))
 
 	if not _on_ground:
 		z_vel -= GRAVITY * delta
@@ -197,6 +194,7 @@ func _update_elevation(delta: float) -> void:
 			z_height = ground_height
 			z_vel = 0.0
 			_on_ground = true
+			FX.dust(global_position + Vector2(0, 16))
 
 	# While high enough off the floor, pass over low (vaultable) cover.
 	var clearing := (z_height - ground_height) > VAULT_HEIGHT
@@ -213,8 +211,8 @@ func _update_shield() -> void:
 	if team == Global.Team.TORTOISE and _shield_texture != null:
 		want = _ai_shield if is_ai else Input.is_action_pressed("shield")
 	_shielding = want
-	shield_sprite.visible = want
 	weapon.visible = not want   # tucked into the shell; gun goes to the back
+	body.set_shielding(want)    # rig shows the back shell while shielding
 
 func _animate(delta: float) -> void:
 	_anim_t += delta
@@ -241,12 +239,17 @@ func _animate(delta: float) -> void:
 		var br := 0.03 * sin(_anim_t * 3.0)
 		sx = _base_body_scale.x * (1.0 - br)
 		sy = _base_body_scale.y * (1.0 + br)
-	body.scale = Vector2(sx, sy)
+	# Apply facing (mirror) + squash to the whole rig.
+	body.scale = Vector2(sx * (-1.0 if _facing_left else 1.0), sy)
 
-	# Walk rock: tilt the body side-to-side while moving so it reads as walking.
+	# Animate the limbs (leg/arm swing, ears, shell-turn).
+	var moving := velocity.length() > 12.0 and _on_ground
+	body.animate_parts(delta, moving, not _on_ground)
+
+	# Subtle whole-body walk rock.
 	var target_rot := 0.0
-	if _on_ground and velocity.length() > 12.0:
-		target_rot = sin(_anim_t * 16.0) * 0.12
+	if moving:
+		target_rot = sin(_anim_t * 16.0) * 0.06
 	body.rotation = lerp_angle(body.rotation, target_rot, 0.25)
 
 	# Weapon sits at the back while shielding (tortoise fires backward); recoil kick.
@@ -263,6 +266,9 @@ func _sample_water() -> int:
 	return state
 
 func _update_water_effects(delta: float) -> void:
+	if _water > 0 and _prev_water == 0:
+		FX.splash(global_position + Vector2(0, 12))
+	_prev_water = _water
 	if team == Global.Team.RABBIT and _water == 2:
 		_drown_t += delta
 		if not is_ai:
@@ -293,12 +299,12 @@ func _update_facing() -> void:
 	# Body stays upright (Brawl-Stars-style); only the weapon arm tracks aim.
 	var angle := _aim_dir.angle()
 	aim_pivot.rotation = angle
-	# Flip the whole rig horizontally so the body faces the aim side.
+	# Face the aim side (the rig is mirrored via body.scale.x in _animate).
 	if _aim_dir.x < -0.05:
-		body.flip_h = true
+		_facing_left = true
 		aim_pivot.scale = Vector2(1, -1) # keep weapon upright when facing left
 	elif _aim_dir.x > 0.05:
-		body.flip_h = false
+		_facing_left = false
 		aim_pivot.scale = Vector2(1, 1)
 
 func _shoot() -> void:
@@ -327,6 +333,9 @@ func _shoot() -> void:
 	fired.emit(origin, end_pos, hit)
 
 func _spawn_shot_fx(from_pos: Vector2, to_pos: Vector2, hit: bool) -> void:
+	FX.muzzle(from_pos, (to_pos - from_pos).angle())
+	if hit:
+		FX.impact(to_pos)
 	# Muzzle flash (brief).
 	muzzle_flash.visible = true
 	_flash_timer = 0.04
@@ -408,6 +417,7 @@ func _try_interact() -> void:
 
 func _on_died(attacker: Node) -> void:
 	velocity = Vector2.ZERO
+	FX.death(global_position)
 	visible = false
 	set_physics_process(false)
 	deaths += 1
@@ -430,7 +440,13 @@ func respawn_for_new_round() -> void:
 	set_collision_mask_value(LOW_COVER_BIT, true)
 	_shielding = false
 	_ai_shield = false
+	_prev_water = 0
 	shield_sprite.visible = false
+	weapon.visible = true
+	body.scale = _base_body_scale
+	body.rotation = 0.0
+	body.position = Vector2.ZERO
+	body.set_shielding(false)
 	_refresh_health_bar()
 	var spawn_group := "tortoise_spawns" if team == Global.Team.TORTOISE else "rabbit_spawns"
 	var spawns := get_tree().get_nodes_in_group(spawn_group)

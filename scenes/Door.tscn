@@ -1,13 +1,13 @@
 [gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/door.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/sprites/door.svg" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/door_oasis.png" id="2"]
 
 [sub_resource type="RectangleShape2D" id="door_shape"]
-size = Vector2(54, 176)
+size = Vector2(112, 236)
 
 [sub_resource type="RectangleShape2D" id="detect_shape"]
-size = Vector2(150, 300)
+size = Vector2(220, 360)
 
 [node name="Door" type="StaticBody2D"]
 collision_layer = 1

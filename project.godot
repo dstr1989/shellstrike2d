@@ -18,6 +18,7 @@ GameManager="*res://scripts/game_manager.gd"
 TouchInput="*res://scripts/touch_input.gd"
 SkinManager="*res://scripts/skin_manager.gd"
 Loadout="*res://scripts/loadout.gd"
+FX="*res://scripts/fx.gd"
 
 [display]
 
