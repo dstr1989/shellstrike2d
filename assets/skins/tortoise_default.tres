@@ -1,8 +1,10 @@
-[gd_resource type="Resource" script_class="CharacterSkin" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="CharacterSkin" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/character_skin.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/sprites/tortoise_topdown.svg" id="2"]
-[ext_resource type="Texture2D" path="res://assets/sprites/tortoise_mascot.svg" id="3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/tortoise_default_body.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/tortoise_default_icon.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/weapon_blaster.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/tortoise_shellshield.png" id="5"]
 
 [resource]
 script = ExtResource("1")
@@ -11,4 +13,6 @@ display_name = "Klasyczny Żółw"
 team = 1
 body_texture = ExtResource("2")
 icon_texture = ExtResource("3")
-body_scale = 0.7
+weapon_texture = ExtResource("4")
+shield_texture = ExtResource("5")
+body_scale = 0.16

@@ -69,15 +69,21 @@ func _ready() -> void:
 	collision_layer = 2 if team == Global.Team.TORTOISE else 4
 	collision_mask = 1 | 2 | 4 | 16
 
+var _shield_texture: Texture2D = null
+
 func _apply_skin() -> void:
 	var skin: CharacterSkin = SkinManager.get_active(team)
 	if skin != null and skin.body_texture != null:
 		body.texture = skin.body_texture
 		body.scale = Vector2.ONE * skin.body_scale
+		_shield_texture = skin.shield_texture
 		if skin.weapon_texture != null:
 			weapon.texture = skin.weapon_texture
 	else:
 		body.texture = FALLBACK_TORTOISE if team == Global.Team.TORTOISE else FALLBACK_RABBIT
+	# Scale the weapon to a consistent on-screen length regardless of source size.
+	if weapon.texture != null:
+		weapon.scale = Vector2.ONE * (46.0 / float(weapon.texture.get_width()))
 
 func _physics_process(delta: float) -> void:
 	if not health.is_alive():
