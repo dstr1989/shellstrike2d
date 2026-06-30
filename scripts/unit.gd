@@ -38,6 +38,16 @@ var z_vel: float = 0.0
 var ground_height: float = 0.0  # floor elevation at our position (ramps/platforms)
 var _on_ground: bool = true
 
+# --- Procedural animation (Brawl-Stars-style juice) ---
+var _anim_t: float = 0.0
+var _recoil: float = 0.0
+var _base_body_scale: Vector2 = Vector2.ONE
+var _weapon_base_x: float = 28.0
+
+# Per-match stats (kill feed / scoreboard).
+var kills: int = 0
+var deaths: int = 0
+
 # Fallback textures if no skin is registered (keeps the unit visible).
 const FALLBACK_TORTOISE := preload("res://assets/sprites/tortoise_topdown.svg")
 const FALLBACK_RABBIT := preload("res://assets/sprites/rabbit_topdown.svg")
@@ -63,6 +73,8 @@ func _ready() -> void:
 	if team == Global.Team.RABBIT:
 		_carrying_charge = true
 	_apply_skin()
+	_base_body_scale = body.scale
+	_weapon_base_x = weapon.position.x
 	# The unit body never rotates (top-down upright look); only AimPivot does.
 	rotation = 0.0
 	# layers: 1=world 2=tortoises 4=rabbits 8=bullets 16=low(vaultable) cover
@@ -103,6 +115,7 @@ func _physics_process(delta: float) -> void:
 	if aim_input.length() > 0.05:
 		_aim_dir = aim_input.normalized()
 	_update_facing()
+	_animate(delta)
 
 	_fire_cooldown = max(0.0, _fire_cooldown - delta)
 	var firing := _ai_firing if is_ai else TouchInput.is_firing()
@@ -155,6 +168,36 @@ func _update_elevation(delta: float) -> void:
 	shadow.scale = Vector2.ONE * lerpf(0.85, 0.5, t)
 	shadow.modulate.a = lerpf(0.35, 0.12, t)
 
+func _animate(delta: float) -> void:
+	_anim_t += delta
+	_recoil = maxf(0.0, _recoil - delta * 6.0)
+
+	var sx := _base_body_scale.x
+	var sy := _base_body_scale.y
+	if not _on_ground:
+		# Stretch going up, squash coming down.
+		var s := clampf(z_vel / 650.0, -0.22, 0.22)
+		sx = _base_body_scale.x * (1.0 - s)
+		sy = _base_body_scale.y * (1.0 + s)
+		body.position.y = lerpf(body.position.y, 0.0, 0.3)
+	elif velocity.length() > 12.0:
+		# Walk: vertical bob + light squash.
+		var b := sin(_anim_t * 16.0)
+		body.position.y = -absf(b) * 5.0
+		var sq := 0.07 * b
+		sx = _base_body_scale.x * (1.0 + sq * 0.5)
+		sy = _base_body_scale.y * (1.0 - sq * 0.5)
+	else:
+		# Idle breathing.
+		body.position.y = lerpf(body.position.y, 0.0, 0.2)
+		var br := 0.03 * sin(_anim_t * 3.0)
+		sx = _base_body_scale.x * (1.0 - br)
+		sy = _base_body_scale.y * (1.0 + br)
+	body.scale = Vector2(sx, sy)
+
+	# Weapon recoil kicks the gun back toward the body.
+	weapon.position.x = _weapon_base_x - _recoil * 8.0
+
 func _sample_ground_height() -> float:
 	var h := 0.0
 	for zone in get_tree().get_nodes_in_group("elevation_zones"):
@@ -185,6 +228,7 @@ func _update_facing() -> void:
 
 func _shoot() -> void:
 	_fire_cooldown = 1.0 / fire_rate
+	_recoil = 1.0
 	var spread := deg_to_rad(randf_range(-bullet_spread_degrees, bullet_spread_degrees))
 	var dir := _aim_dir.rotated(spread)
 	var space_state := get_world_2d().direct_space_state
@@ -272,10 +316,12 @@ func _try_interact() -> void:
 	elif team == Global.Team.TORTOISE:
 		charge.try_defuse(self)
 
-func _on_died(_attacker: Node) -> void:
+func _on_died(attacker: Node) -> void:
 	velocity = Vector2.ZERO
 	visible = false
 	set_physics_process(false)
+	deaths += 1
+	GameManager.log_kill(attacker, self)
 	GameManager.notify_actor_died(self)
 
 func respawn_for_new_round() -> void:

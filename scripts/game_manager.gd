@@ -6,6 +6,7 @@ signal phase_changed(phase: int)
 signal round_time_changed(seconds_left: float)
 signal round_ended(reason: int, winner: int)
 signal score_changed(tortoise_score: int, rabbit_score: int)
+signal kill_logged(attacker_label: String, victim_label: String, attacker_team: int)
 
 var phase: int = Global.RoundPhase.WARMUP
 var round_time_left: float = 0.0
@@ -59,6 +60,23 @@ func notify_charge_planted() -> void:
 
 func notify_charge_defused() -> void:
 	end_round(Global.RoundEndReason.CHARGE_DEFUSED, Global.Team.TORTOISE)
+
+func log_kill(attacker: Node, victim: Node) -> void:
+	if attacker != null and is_instance_valid(attacker) and attacker != victim and "kills" in attacker:
+		attacker.kills += 1
+	var atk_team := -1
+	if attacker != null and is_instance_valid(attacker) and "team" in attacker:
+		atk_team = attacker.team
+	kill_logged.emit(_unit_label(attacker), _unit_label(victim), atk_team)
+
+func _unit_label(u: Node) -> String:
+	if u == null or not is_instance_valid(u):
+		return "Świat"
+	if "is_ai" in u and not u.is_ai:
+		return "Ty"
+	if "team" in u:
+		return Global.team_name(u.team)
+	return "?"
 
 func notify_actor_died(actor: Node) -> void:
 	if not _actors.has(actor):
