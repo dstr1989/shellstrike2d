@@ -42,8 +42,8 @@ polygon = PackedVector2Array(0, -7, 16, 0, 0, 7)
 visible = false
 
 [node name="Shield" type="Sprite2D" parent="Visual/AimPivot"]
-position = Vector2(46, 6)
-scale = Vector2(0.25, 0.25)
+position = Vector2(18, 4)
+scale = Vector2(0.4, 0.4)
 visible = false
 
 [node name="HealthBar" type="Node2D" parent="Visual"]

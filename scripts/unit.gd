@@ -124,7 +124,7 @@ func _apply_skin() -> void:
 		weapon.scale = Vector2.ONE * (46.0 / float(weapon.texture.get_width()))
 	if _shield_texture != null:
 		shield_sprite.texture = _shield_texture
-		shield_sprite.scale = Vector2.ONE * (74.0 / float(_shield_texture.get_width()))
+		shield_sprite.scale = Vector2.ONE * (104.0 / float(_shield_texture.get_width()))
 	shield_sprite.visible = false
 
 func _physics_process(delta: float) -> void:
@@ -214,6 +214,7 @@ func _update_shield() -> void:
 		want = _ai_shield if is_ai else Input.is_action_pressed("shield")
 	_shielding = want
 	shield_sprite.visible = want
+	weapon.visible = not want   # tucked into the shell; gun goes to the back
 
 func _animate(delta: float) -> void:
 	_anim_t += delta

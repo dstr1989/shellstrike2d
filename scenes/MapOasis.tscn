@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="2"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/den_marker.svg" id="7"]
 [ext_resource type="Script" path="res://scripts/elevation_zone.gd" id="8"]
 [ext_resource type="Script" path="res://scripts/water_zone.gd" id="9"]
+[ext_resource type="PackedScene" path="res://scenes/Door.tscn" id="10"]
 
 [sub_resource type="RectangleShape2D" id="border_h"]
 size = Vector2(2508, 110)
@@ -216,6 +217,15 @@ ramp_low = 0.0
 ramp_high = -40.0
 ramp_axis = Vector2(0, -1)
 debug_draw = false
+
+[node name="Doors" type="Node2D" parent="."]
+
+[node name="DoorMid" parent="Doors" instance=ExtResource("10")]
+position = Vector2(1254, 960)
+rotation = 1.5708
+
+[node name="DoorB" parent="Doors" instance=ExtResource("10")]
+position = Vector2(1700, 470)
 
 [node name="DenA" type="Marker2D" parent="."]
 position = Vector2(577, 470)
