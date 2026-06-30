@@ -20,12 +20,17 @@ signal fired(from_pos: Vector2, to_pos: Vector2, hit: bool)
 @onready var aim_pivot: Node2D = $AimPivot
 @onready var weapon: Sprite2D = $AimPivot/Weapon
 @onready var muzzle: Marker2D = $AimPivot/Muzzle
+@onready var muzzle_flash: Polygon2D = $AimPivot/MuzzleFlash
+@onready var health_bar: Node2D = $HealthBar
+@onready var health_fill: ColorRect = $HealthBar/Fill
+@onready var prompt_label: Label = $PromptLabel
 
 # Fallback textures if no skin is registered (keeps the unit visible).
 const FALLBACK_TORTOISE := preload("res://assets/sprites/tortoise_topdown.svg")
 const FALLBACK_RABBIT := preload("res://assets/sprites/rabbit_topdown.svg")
 
 var _fire_cooldown: float = 0.0
+var _flash_timer: float = 0.0
 var _aim_dir: Vector2 = Vector2.RIGHT
 var _ai_move: Vector2 = Vector2.ZERO
 var _ai_aim: Vector2 = Vector2.RIGHT
@@ -37,7 +42,11 @@ func _ready() -> void:
 	add_to_group("respawnable")
 	add_to_group("units")
 	health.died.connect(_on_died)
+	health.damaged.connect(_on_damaged)
 	GameManager.register_actor(self)
+	muzzle_flash.visible = false
+	_refresh_health_bar()
+	prompt_label.text = ""
 	if team == Global.Team.RABBIT:
 		_carrying_charge = true
 	_apply_skin()
@@ -69,7 +78,7 @@ func _physics_process(delta: float) -> void:
 	velocity = move_input.normalized() * move_speed if move_input.length() > 0.0 else Vector2.ZERO
 	move_and_slide()
 
-	var aim_input := _ai_aim if is_ai else TouchInput.get_aim_vector(global_position)
+	var aim_input := _get_aim_input()
 	if aim_input.length() > 0.05:
 		_aim_dir = aim_input.normalized()
 	_update_facing()
@@ -79,9 +88,26 @@ func _physics_process(delta: float) -> void:
 	if firing and _fire_cooldown <= 0.0:
 		_shoot()
 
+	if _flash_timer > 0.0:
+		_flash_timer -= delta
+		if _flash_timer <= 0.0:
+			muzzle_flash.visible = false
+
 	var interacting := _ai_interacting if is_ai else TouchInput.is_interacting()
 	if interacting:
 		_try_interact()
+
+	if not is_ai:
+		_update_prompt()
+
+func _get_aim_input() -> Vector2:
+	if is_ai:
+		return _ai_aim
+	# Touch aim stick takes priority; otherwise aim at the world mouse position
+	# (get_global_mouse_position accounts for the camera, screen coords do not).
+	if TouchInput.aim_vector.length() > 0.05:
+		return TouchInput.aim_vector
+	return get_global_mouse_position() - global_position
 
 func _update_facing() -> void:
 	# Body stays upright (Brawl-Stars-style); only the weapon arm tracks aim.
@@ -116,12 +142,64 @@ func _shoot() -> void:
 		if collider and collider.has_method("_on_hit_by_bullet"):
 			collider._on_hit_by_bullet(damage_per_shot, self)
 			hit = true
+	_spawn_shot_fx(muzzle.global_position, end_pos, hit)
 	fired.emit(muzzle.global_position, end_pos, hit)
+
+func _spawn_shot_fx(from_pos: Vector2, to_pos: Vector2, hit: bool) -> void:
+	# Muzzle flash (brief).
+	muzzle_flash.visible = true
+	_flash_timer = 0.04
+	# Tracer line, fades out and frees itself.
+	var tracer := Line2D.new()
+	tracer.width = 3.0
+	tracer.default_color = Color(1.0, 0.86, 0.34, 0.9)
+	tracer.points = PackedVector2Array([from_pos, to_pos])
+	tracer.z_index = 50
+	var scene_root := get_tree().current_scene
+	if scene_root == null:
+		return
+	scene_root.add_child(tracer)
+	var tw := tracer.create_tween()
+	tw.tween_property(tracer, "modulate:a", 0.0, 0.09)
+	tw.tween_callback(tracer.queue_free)
+	# Impact spark.
+	var spark := Polygon2D.new()
+	spark.color = Color(1.0, 0.7, 0.2, 1.0) if hit else Color(0.9, 0.9, 0.9, 0.8)
+	spark.polygon = PackedVector2Array([Vector2(-5, 0), Vector2(0, -5), Vector2(5, 0), Vector2(0, 5)])
+	spark.global_position = to_pos
+	spark.z_index = 50
+	scene_root.add_child(spark)
+	var tw2 := spark.create_tween()
+	tw2.set_parallel(true)
+	tw2.tween_property(spark, "scale", Vector2(2.2, 2.2), 0.12)
+	tw2.tween_property(spark, "modulate:a", 0.0, 0.12)
+	tw2.chain().tween_callback(spark.queue_free)
 
 func _on_hit_by_bullet(amount: int, attacker: Node) -> void:
 	if attacker and "team" in attacker and attacker.team == team:
 		return # no friendly fire in MVP
 	health.apply_damage(amount, attacker)
+
+func _on_damaged(_amount: int, _current_hp: int, _attacker: Node) -> void:
+	_refresh_health_bar()
+	body.modulate = Color(1, 0.45, 0.45)
+	create_tween().tween_property(body, "modulate", Color.WHITE, 0.18)
+
+func _refresh_health_bar() -> void:
+	var frac := clampf(float(health.current_hp) / float(health.max_hp), 0.0, 1.0)
+	health_fill.scale.x = frac
+	health_fill.color = Color(0.36, 0.85, 0.45) if frac > 0.35 else Color(0.9, 0.4, 0.3)
+
+func _update_prompt() -> void:
+	var charge := get_tree().get_first_node_in_group("carrot_charge")
+	var txt := ""
+	if charge != null:
+		if team == Global.Team.RABBIT and is_carrying_charge() and charge.can_plant_at(global_position):
+			txt = "Przytrzymaj [E] — podłóż ładunek"
+		elif team == Global.Team.TORTOISE and charge.can_defuse_at(global_position):
+			txt = "Przytrzymaj [E] — rozbrój"
+	prompt_label.text = txt
+	prompt_label.visible = txt != ""
 
 func _try_interact() -> void:
 	var charge := get_tree().get_first_node_in_group("carrot_charge")
@@ -143,6 +221,10 @@ func respawn_for_new_round() -> void:
 	visible = true
 	set_physics_process(true)
 	_carrying_charge = team == Global.Team.RABBIT
+	body.modulate = Color.WHITE
+	muzzle_flash.visible = false
+	prompt_label.text = ""
+	_refresh_health_bar()
 	var spawn_group := "tortoise_spawns" if team == Global.Team.TORTOISE else "rabbit_spawns"
 	var spawns := get_tree().get_nodes_in_group(spawn_group)
 	if spawns.size() > 0:

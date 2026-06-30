@@ -134,19 +134,19 @@ groups = ["rabbit_spawns"]
 [node name="CarrotCharge" parent="." instance=ExtResource("4")]
 
 [node name="Player" parent="." instance=ExtResource("2")]
-position = Vector2(700, 120)
-team = 1
-
-[node name="TortoiseBot1" parent="." instance=ExtResource("3")]
-position = Vector2(600, 120)
-team = 1
+position = Vector2(700, 1680)
+team = 2
 
 [node name="RabbitBot1" parent="." instance=ExtResource("3")]
 position = Vector2(640, 1680)
 team = 2
 
-[node name="RabbitBot2" parent="." instance=ExtResource("3")]
-position = Vector2(760, 1680)
-team = 2
+[node name="TortoiseBot1" parent="." instance=ExtResource("3")]
+position = Vector2(600, 120)
+team = 1
+
+[node name="TortoiseBot2" parent="." instance=ExtResource("3")]
+position = Vector2(760, 120)
+team = 1
 
 [node name="HUD" parent="." instance=ExtResource("5")]
