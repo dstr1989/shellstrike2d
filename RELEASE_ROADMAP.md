@@ -12,11 +12,14 @@ gdy odpalasz grę i widzisz czego brakuje, dopisujemy tutaj.
 - Pionowość: skok (grawitacja, cień), vault nad niską osłoną, **rampy góra/dół** (ElevationZone), platformy/zapadnięte doły.
 - Animacja proceduralna: oddech, bujanie w biegu, rozciąganie w skoku, odrzut broni.
 - Kill feed (jak w CS).
+- Mapa `de_oasis` (grafika AI + kolizje, rampy góra/dół, woda, wraki jako osłony, tunele).
+- Wybór strony w menu (gra Królik/Żółw, 2v2 z botem-kolegą).
+- **Skorupa-tarcza żółwia** (blok z przodu, wolniejszy ruch, brak strzału, slot prawy myszy / przycisk TARCZA).
+- **Walka po wysokości** — chowanie się w zapadniętych tunelach (concealment po z).
 - Build na Androida (APK), preset iOS, repo na GitHub.
 
 ## 🔜 Następne (gameplay)
-- [ ] **Walka zależna od wysokości** — realne chowanie się w tunelach / przewaga z plateau (LOS po z, osłona za autami).
-- [ ] **Skorupa-tarcza żółwia** (mechanika: blok obrażeń z przodu, wolniejszy ruch, brak strzału) — grafika `tortoise_shellshield.png` już jest.
+- [ ] **Osłona za autami/wysokością bardziej dopracowana** — pełne LOS po z, kucanie.
 - [ ] **Pociski + różne bronie** — pistolet/SMG/shotgun/„karabin marchewkowy"; statystyki, rozrzut, magazynek, przeładowanie.
 - [ ] **Animacja szkieletowa** (cutout) — części postaci z ChatGPT → rig w Godot dla prawdziwego ruchu nóg/rąk.
 - [ ] **Dźwięk** — strzały, trafienia, kroki, plant/defuse, muzyka menu/rundy.
