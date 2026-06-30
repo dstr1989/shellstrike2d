@@ -58,3 +58,15 @@ mode = "aim"
 
 [node name="InteractButton" parent="." instance=ExtResource("3")]
 position = Vector2(320, 980)
+
+[node name="JumpButton" type="Button" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -350.0
+offset_right = -54.0
+offset_bottom = -254.0
+text = "SKOK"

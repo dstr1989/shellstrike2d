@@ -16,14 +16,27 @@ signal fired(from_pos: Vector2, to_pos: Vector2, hit: bool)
 @export var bullet_spread_degrees: float = 2.5
 
 @onready var health: HealthComponent = $HealthComponent
-@onready var body: Sprite2D = $Body
-@onready var aim_pivot: Node2D = $AimPivot
-@onready var weapon: Sprite2D = $AimPivot/Weapon
-@onready var muzzle: Marker2D = $AimPivot/Muzzle
-@onready var muzzle_flash: Polygon2D = $AimPivot/MuzzleFlash
-@onready var health_bar: Node2D = $HealthBar
-@onready var health_fill: ColorRect = $HealthBar/Fill
-@onready var prompt_label: Label = $PromptLabel
+@onready var visual: Node2D = $Visual
+@onready var shadow: Sprite2D = $Shadow
+@onready var body: Sprite2D = $Visual/Body
+@onready var aim_pivot: Node2D = $Visual/AimPivot
+@onready var weapon: Sprite2D = $Visual/AimPivot/Weapon
+@onready var muzzle: Marker2D = $Visual/AimPivot/Muzzle
+@onready var muzzle_flash: Polygon2D = $Visual/AimPivot/MuzzleFlash
+@onready var health_bar: Node2D = $Visual/HealthBar
+@onready var health_fill: ColorRect = $Visual/HealthBar/Fill
+@onready var prompt_label: Label = $Visual/PromptLabel
+
+# --- Elevation / jumping (top-down z-height simulation) ---
+const GRAVITY := 900.0
+const JUMP_VELOCITY := 330.0
+const VAULT_HEIGHT := 16.0      # above this, you clear low (vaultable) cover
+const LOW_COVER_BIT := 5        # collision layer bit 5 (value 16) = vaultable cover
+
+var z_height: float = 0.0       # current elevation above the floor under us
+var z_vel: float = 0.0
+var ground_height: float = 0.0  # floor elevation at our position (ramps/platforms)
+var _on_ground: bool = true
 
 # Fallback textures if no skin is registered (keeps the unit visible).
 const FALLBACK_TORTOISE := preload("res://assets/sprites/tortoise_topdown.svg")
@@ -52,9 +65,9 @@ func _ready() -> void:
 	_apply_skin()
 	# The unit body never rotates (top-down upright look); only AimPivot does.
 	rotation = 0.0
-	# layers: 1=world 2=tortoises 4=rabbits 8=bullets 16=interactables
+	# layers: 1=world 2=tortoises 4=rabbits 8=bullets 16=low(vaultable) cover
 	collision_layer = 2 if team == Global.Team.TORTOISE else 4
-	collision_mask = 1 | 2 | 4
+	collision_mask = 1 | 2 | 4 | 16
 
 func _apply_skin() -> void:
 	var skin: CharacterSkin = SkinManager.get_active(team)
@@ -78,6 +91,8 @@ func _physics_process(delta: float) -> void:
 	velocity = move_input.normalized() * move_speed if move_input.length() > 0.0 else Vector2.ZERO
 	move_and_slide()
 
+	_update_elevation(delta)
+
 	var aim_input := _get_aim_input()
 	if aim_input.length() > 0.05:
 		_aim_dir = aim_input.normalized()
@@ -99,6 +114,47 @@ func _physics_process(delta: float) -> void:
 
 	if not is_ai:
 		_update_prompt()
+
+func _update_elevation(delta: float) -> void:
+	var target_ground := _sample_ground_height()
+	if _on_ground:
+		if target_ground >= ground_height - 1.0:
+			ground_height = target_ground   # follow ramp up / flat ground
+			z_height = ground_height
+		else:
+			ground_height = target_ground   # stepped off a ledge → start falling
+			_on_ground = false
+	else:
+		ground_height = target_ground
+
+	if _on_ground and not is_ai and Input.is_action_just_pressed("jump"):
+		z_vel = JUMP_VELOCITY
+		_on_ground = false
+
+	if not _on_ground:
+		z_vel -= GRAVITY * delta
+		z_height += z_vel * delta
+		if z_height <= ground_height:
+			z_height = ground_height
+			z_vel = 0.0
+			_on_ground = true
+
+	# While high enough off the floor, pass over low (vaultable) cover.
+	var clearing := (z_height - ground_height) > VAULT_HEIGHT
+	set_collision_mask_value(LOW_COVER_BIT, not clearing)
+
+	# Lift the visuals; shrink/fade the shadow with altitude.
+	visual.position.y = -z_height
+	var t := clampf(z_height / 120.0, 0.0, 1.0)
+	shadow.scale = Vector2.ONE * lerpf(0.85, 0.5, t)
+	shadow.modulate.a = lerpf(0.35, 0.12, t)
+
+func _sample_ground_height() -> float:
+	var h := 0.0
+	for zone in get_tree().get_nodes_in_group("elevation_zones"):
+		if zone.has_method("contains_point") and zone.contains_point(global_position):
+			h = maxf(h, zone.height_at(global_position))
+	return h
 
 func _get_aim_input() -> Vector2:
 	if is_ai:
@@ -224,6 +280,12 @@ func respawn_for_new_round() -> void:
 	body.modulate = Color.WHITE
 	muzzle_flash.visible = false
 	prompt_label.text = ""
+	z_height = 0.0
+	z_vel = 0.0
+	ground_height = 0.0
+	_on_ground = true
+	visual.position.y = 0.0
+	set_collision_mask_value(LOW_COVER_BIT, true)
 	_refresh_health_bar()
 	var spawn_group := "tortoise_spawns" if team == Global.Team.TORTOISE else "rabbit_spawns"
 	var spawns := get_tree().get_nodes_in_group(spawn_group)

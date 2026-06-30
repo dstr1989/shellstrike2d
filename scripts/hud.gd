@@ -4,12 +4,15 @@ extends CanvasLayer
 @onready var timer_label: Label = $TopBar/TimerLabel
 @onready var score_label: Label = $TopBar/ScoreLabel
 @onready var status_label: Label = $StatusLabel
+@onready var jump_button: Button = $JumpButton
 
 func _ready() -> void:
 	GameManager.round_time_changed.connect(_on_time_changed)
 	GameManager.score_changed.connect(_on_score_changed)
 	GameManager.phase_changed.connect(_on_phase_changed)
 	GameManager.round_ended.connect(_on_round_ended)
+	jump_button.button_down.connect(func(): Input.action_press("jump"))
+	jump_button.button_up.connect(func(): Input.action_release("jump"))
 	_on_score_changed(0, 0)
 	_on_phase_changed(Global.RoundPhase.WARMUP)
 
