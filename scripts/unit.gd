@@ -16,13 +16,17 @@ signal fired(from_pos: Vector2, to_pos: Vector2, hit: bool)
 @export var bullet_spread_degrees: float = 2.5
 
 @onready var health: HealthComponent = $HealthComponent
-@onready var muzzle: Marker2D = $Muzzle
-@onready var sprite: Sprite2D = $Sprite
+@onready var body: Sprite2D = $Body
+@onready var aim_pivot: Node2D = $AimPivot
+@onready var weapon: Sprite2D = $AimPivot/Weapon
+@onready var muzzle: Marker2D = $AimPivot/Muzzle
 
-const TORTOISE_TEXTURE := preload("res://assets/sprites/tortoise_topdown.svg")
-const RABBIT_TEXTURE := preload("res://assets/sprites/rabbit_topdown.svg")
+# Fallback textures if no skin is registered (keeps the unit visible).
+const FALLBACK_TORTOISE := preload("res://assets/sprites/tortoise_topdown.svg")
+const FALLBACK_RABBIT := preload("res://assets/sprites/rabbit_topdown.svg")
 
 var _fire_cooldown: float = 0.0
+var _aim_dir: Vector2 = Vector2.RIGHT
 var _ai_move: Vector2 = Vector2.ZERO
 var _ai_aim: Vector2 = Vector2.RIGHT
 var _ai_firing: bool = false
@@ -36,10 +40,22 @@ func _ready() -> void:
 	GameManager.register_actor(self)
 	if team == Global.Team.RABBIT:
 		_carrying_charge = true
-	sprite.texture = TORTOISE_TEXTURE if team == Global.Team.TORTOISE else RABBIT_TEXTURE
+	_apply_skin()
+	# The unit body never rotates (top-down upright look); only AimPivot does.
+	rotation = 0.0
 	# layers: 1=world 2=tortoises 4=rabbits 8=bullets 16=interactables
 	collision_layer = 2 if team == Global.Team.TORTOISE else 4
 	collision_mask = 1 | 2 | 4
+
+func _apply_skin() -> void:
+	var skin: CharacterSkin = SkinManager.get_active(team)
+	if skin != null and skin.body_texture != null:
+		body.texture = skin.body_texture
+		body.scale = Vector2.ONE * skin.body_scale
+		if skin.weapon_texture != null:
+			weapon.texture = skin.weapon_texture
+	else:
+		body.texture = FALLBACK_TORTOISE if team == Global.Team.TORTOISE else FALLBACK_RABBIT
 
 func _physics_process(delta: float) -> void:
 	if not health.is_alive():
@@ -55,7 +71,8 @@ func _physics_process(delta: float) -> void:
 
 	var aim_input := _ai_aim if is_ai else TouchInput.get_aim_vector(global_position)
 	if aim_input.length() > 0.05:
-		rotation = aim_input.angle()
+		_aim_dir = aim_input.normalized()
+	_update_facing()
 
 	_fire_cooldown = max(0.0, _fire_cooldown - delta)
 	var firing := _ai_firing if is_ai else TouchInput.is_firing()
@@ -66,10 +83,22 @@ func _physics_process(delta: float) -> void:
 	if interacting:
 		_try_interact()
 
+func _update_facing() -> void:
+	# Body stays upright (Brawl-Stars-style); only the weapon arm tracks aim.
+	var angle := _aim_dir.angle()
+	aim_pivot.rotation = angle
+	# Flip the whole rig horizontally so the body faces the aim side.
+	if _aim_dir.x < -0.05:
+		body.flip_h = true
+		aim_pivot.scale = Vector2(1, -1) # keep weapon upright when facing left
+	elif _aim_dir.x > 0.05:
+		body.flip_h = false
+		aim_pivot.scale = Vector2(1, 1)
+
 func _shoot() -> void:
 	_fire_cooldown = 1.0 / fire_rate
 	var spread := deg_to_rad(randf_range(-bullet_spread_degrees, bullet_spread_degrees))
-	var dir := Vector2.RIGHT.rotated(rotation + spread)
+	var dir := _aim_dir.rotated(spread)
 	var space_state := get_world_2d().direct_space_state
 	var query := PhysicsRayQueryParameters2D.create(
 		muzzle.global_position,

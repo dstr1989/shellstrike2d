@@ -16,6 +16,7 @@ boot_splash/bg_color=Color(0.07, 0.09, 0.07, 1)
 Global="*res://scripts/global.gd"
 GameManager="*res://scripts/game_manager.gd"
 TouchInput="*res://scripts/touch_input.gd"
+SkinManager="*res://scripts/skin_manager.gd"
 
 [display]
 
