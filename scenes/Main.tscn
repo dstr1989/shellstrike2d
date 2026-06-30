@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="2"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/tile_ground.svg" id="6"]
 [ext_resource type="Texture2D" path="res://assets/sprites/tile_wall.svg" id="7"]
 [ext_resource type="Texture2D" path="res://assets/sprites/den_marker.svg" id="8"]
+[ext_resource type="Script" path="res://scripts/elevation_zone.gd" id="9"]
 
 [sub_resource type="RectangleShape2D" id="border_h"]
 size = Vector2(1800, 40)
@@ -220,6 +221,38 @@ groups = ["rabbit_spawns"]
 [node name="RabbitSpawn2" type="Marker2D" parent="."]
 position = Vector2(980, 2220)
 groups = ["rabbit_spawns"]
+
+[node name="Elevation" type="Node2D" parent="."]
+
+[node name="PitFloor" type="Node2D" parent="Elevation"]
+position = Vector2(300, 1180)
+script = ExtResource("9")
+size = Vector2(240, 240)
+floor_height = -38.0
+
+[node name="PitRamp" type="Node2D" parent="Elevation"]
+position = Vector2(300, 1370)
+script = ExtResource("9")
+size = Vector2(240, 140)
+is_ramp = true
+ramp_low = 0.0
+ramp_high = -38.0
+ramp_axis = Vector2(0, -1)
+
+[node name="PlateauFloor" type="Node2D" parent="Elevation"]
+position = Vector2(1500, 1180)
+script = ExtResource("9")
+size = Vector2(240, 240)
+floor_height = 44.0
+
+[node name="PlateauRamp" type="Node2D" parent="Elevation"]
+position = Vector2(1500, 1370)
+script = ExtResource("9")
+size = Vector2(240, 140)
+is_ramp = true
+ramp_low = 0.0
+ramp_high = 44.0
+ramp_axis = Vector2(0, -1)
 
 [node name="CarrotCharge" parent="." instance=ExtResource("4")]
 
