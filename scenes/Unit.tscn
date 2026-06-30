@@ -1,10 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://unit_base"]
+[gd_scene load_steps=6 format=3 uid="uid://unit_base"]
 
 [ext_resource type="Script" path="res://scripts/unit.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/health_component.gd" id="2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/weapon_blaster.svg" id="3"]
 [ext_resource type="Texture2D" path="res://assets/sprites/shadow.svg" id="4"]
-[ext_resource type="Script" path="res://scripts/character_rig.gd" id="5"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1"]
 radius = 16.0
@@ -23,9 +22,8 @@ texture = ExtResource("4")
 
 [node name="Visual" type="Node2D" parent="."]
 
-[node name="Body" type="Node2D" parent="Visual"]
-scale = Vector2(0.2, 0.2)
-script = ExtResource("5")
+[node name="Body" type="Sprite2D" parent="Visual"]
+scale = Vector2(0.16, 0.16)
 
 [node name="AimPivot" type="Node2D" parent="Visual"]
 

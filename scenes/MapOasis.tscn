@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="2"]
@@ -10,7 +10,6 @@
 [ext_resource type="Script" path="res://scripts/elevation_zone.gd" id="8"]
 [ext_resource type="Script" path="res://scripts/water_zone.gd" id="9"]
 [ext_resource type="PackedScene" path="res://scenes/Door.tscn" id="10"]
-[ext_resource type="Texture2D" path="res://assets/sprites/tunnel_entrance.png" id="11"]
 
 [sub_resource type="RectangleShape2D" id="border_h"]
 size = Vector2(2508, 110)
@@ -218,16 +217,6 @@ ramp_low = 0.0
 ramp_high = -40.0
 ramp_axis = Vector2(0, -1)
 debug_draw = false
-
-[node name="TunnelArt" type="Node2D" parent="."]
-
-[node name="EntryTop" type="Sprite2D" parent="TunnelArt"]
-position = Vector2(251, 858)
-texture = ExtResource("11")
-
-[node name="EntryBottom" type="Sprite2D" parent="TunnelArt"]
-position = Vector2(251, 1750)
-texture = ExtResource("11")
 
 [node name="Doors" type="Node2D" parent="."]
 
