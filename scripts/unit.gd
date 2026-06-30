@@ -61,6 +61,12 @@ const HIDE_DEPTH := -20.0          # at/below this z you can be hidden in a pit
 const HIDE_GAP := 20.0             # min z gap for concealment
 const PEEK_DIST := 240.0           # within this range height no longer protects
 
+# --- Water ---
+const SWIM_MULT := 1.45            # tortoise swims faster
+const DROWN_TIME := 2.0            # rabbit seconds in deep water before drowning
+var _water: int = 0                # 0 none, 1 shallow, 2 deep
+var _drown_t: float = 0.0
+
 # Fallback textures if no skin is registered (keeps the unit visible).
 const FALLBACK_TORTOISE := preload("res://assets/sprites/tortoise_topdown.svg")
 const FALLBACK_RABBIT := preload("res://assets/sprites/rabbit_topdown.svg")
@@ -130,10 +136,13 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_update_shield()
+	_water = _sample_water()
 
 	var move_input := _ai_move if is_ai else TouchInput.get_move_vector()
 	velocity = move_input.normalized() * move_speed if move_input.length() > 0.0 else Vector2.ZERO
-	if _shielding:
+	if team == Global.Team.TORTOISE and _water > 0:
+		velocity *= SWIM_MULT       # tortoise swims fast
+	elif _shielding:
 		velocity *= SHIELD_MOVE_MULT
 	move_and_slide()
 
@@ -147,8 +156,11 @@ func _physics_process(delta: float) -> void:
 
 	_fire_cooldown = max(0.0, _fire_cooldown - delta)
 	var firing := _ai_firing if is_ai else TouchInput.is_firing()
-	if firing and not _shielding and _fire_cooldown <= 0.0:
+	var can_shoot := not (team == Global.Team.TORTOISE and _water > 0)  # no shooting while swimming
+	if firing and can_shoot and _fire_cooldown <= 0.0:
 		_shoot()
+
+	_update_water_effects(delta)
 
 	if _flash_timer > 0.0:
 		_flash_timer -= delta
@@ -230,8 +242,35 @@ func _animate(delta: float) -> void:
 		sy = _base_body_scale.y * (1.0 + br)
 	body.scale = Vector2(sx, sy)
 
-	# Weapon recoil kicks the gun back toward the body.
-	weapon.position.x = _weapon_base_x - _recoil * 8.0
+	# Walk rock: tilt the body side-to-side while moving so it reads as walking.
+	var target_rot := 0.0
+	if _on_ground and velocity.length() > 12.0:
+		target_rot = sin(_anim_t * 16.0) * 0.12
+	body.rotation = lerp_angle(body.rotation, target_rot, 0.25)
+
+	# Weapon sits at the back while shielding (tortoise fires backward); recoil kick.
+	if _shielding:
+		weapon.position.x = -_weapon_base_x + _recoil * 8.0
+	else:
+		weapon.position.x = _weapon_base_x - _recoil * 8.0
+
+func _sample_water() -> int:
+	var state := 0
+	for z in get_tree().get_nodes_in_group("water_zones"):
+		if z.contains_point(global_position):
+			state = maxi(state, 2 if z.is_deep(global_position) else 1)
+	return state
+
+func _update_water_effects(delta: float) -> void:
+	if team == Global.Team.RABBIT and _water == 2:
+		_drown_t += delta
+		if not is_ai:
+			prompt_label.text = "🌊 TONIESZ! Zawróć!"
+			prompt_label.visible = true
+		if _drown_t >= DROWN_TIME:
+			health.apply_damage(9999, null)
+	else:
+		_drown_t = 0.0
 
 func _sample_ground_height() -> float:
 	var h := 0.0
@@ -264,27 +303,27 @@ func _update_facing() -> void:
 func _shoot() -> void:
 	_fire_cooldown = 1.0 / fire_rate
 	_recoil = 1.0
+	# While shielding the tortoise faces its shell forward and fires BACKWARD.
+	var base_dir := -_aim_dir if _shielding else _aim_dir
+	var origin := (global_position - _aim_dir * 30.0) if _shielding else muzzle.global_position
 	var spread := deg_to_rad(randf_range(-bullet_spread_degrees, bullet_spread_degrees))
-	var dir := _aim_dir.rotated(spread)
+	var dir := base_dir.rotated(spread)
 	var space_state := get_world_2d().direct_space_state
-	var query := PhysicsRayQueryParameters2D.create(
-		muzzle.global_position,
-		muzzle.global_position + dir * weapon_range
-	)
+	var query := PhysicsRayQueryParameters2D.create(origin, origin + dir * weapon_range)
 	query.exclude = [self]
 	var enemy_layer := 4 if team == Global.Team.TORTOISE else 2
 	query.collision_mask = 1 | enemy_layer # world + opposing team only
 	var result := space_state.intersect_ray(query)
 	var hit := false
-	var end_pos := muzzle.global_position + dir * weapon_range
+	var end_pos := origin + dir * weapon_range
 	if result:
 		end_pos = result.position
 		var collider = result.get("collider")
 		if collider and collider.has_method("_on_hit_by_bullet"):
 			collider._on_hit_by_bullet(damage_per_shot, self)
 			hit = true
-	_spawn_shot_fx(muzzle.global_position, end_pos, hit)
-	fired.emit(muzzle.global_position, end_pos, hit)
+	_spawn_shot_fx(origin, end_pos, hit)
+	fired.emit(origin, end_pos, hit)
 
 func _spawn_shot_fx(from_pos: Vector2, to_pos: Vector2, hit: bool) -> void:
 	# Muzzle flash (brief).
